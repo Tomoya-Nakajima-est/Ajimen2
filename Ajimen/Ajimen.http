@@ -1,0 +1,6 @@
+@Ajimen_HostAddress = http://localhost:5022
+
+GET {{Ajimen_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
