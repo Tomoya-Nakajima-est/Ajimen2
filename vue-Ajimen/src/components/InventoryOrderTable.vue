@@ -70,8 +70,8 @@
           </thead>
           
           <tbody>
-            <tr v-for="order in orderList" :key="order.ItemId">
-              <td>{{ order.OrderLogId }}</td>
+            <tr v-for="(order, idx) in orderList" :key="order.ItemId">
+              <td>{{ idx + 1 }}</td>
               <td>{{ order.StaffId }}</td>
               <td>{{ order.StaffName }}</td>
               <td>{{ order.ItemId }}</td>
@@ -93,7 +93,6 @@
   </div>
 
 </template>
-
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -201,6 +200,8 @@ body, html, #app {
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
+  overflow-y: auto;
+  height: 100vh; /* または100% */
 }
 
 .home-root {
@@ -215,6 +216,8 @@ body, html, #app {
   background: #f3ede6;
   min-width: 320px;
   margin: 0;
+  overflow-y: auto;
+  height: 100vh; /* または100% */
 }
 
 .main-title, .section-title {
@@ -228,28 +231,24 @@ body, html, #app {
 
 .stock-table-wrap, .order-table-wrap {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100vw;
   min-width: 0;
-  margin: 0 auto 24px auto;
+  margin: 0 auto 10px auto;      /* 下余白を減らす */
+  padding: 4px 0;                /* パディングを小さく */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px #bb99aa33;
-  min-height: 210px;
+  min-height: 50px;
   overflow-x: auto;
-  overflow-y: auto;
-  padding: 18px 1vw 12px 1vw;  /* 左右にvw単位で余白 */
 }
 
 .table {
   width: 100%;
-  max-width: 1300px;
-  min-width: 450px;
-  margin: 0 auto 24px auto;
-  background: #fff;
+  min-width: 360px;              /* これより小さい画面は横スクロール */
+  max-width: 100%;
+  font-size: 0.88rem;            /* やや小さめ */
   border-radius: 8px;
   border-collapse: collapse;
-  font-size: 1.0rem;
-  margin-bottom: 12px;
 }
 
 .table thead tr {
@@ -262,20 +261,26 @@ body, html, #app {
   color: #fff;
 }
 
-
-
 .table th, .table td {
-  padding: 18px 20px;   /* ←ここの数字を大きくすると余白が広くなる */
+  padding: 3px 4px;   /* ←ここの数字を大きくすると余白が広くなる */
   border: 1px solid #b8a8ad;
   text-align: center;
   /* 追加例: */
   /* vertical-align: middle; */
 }
 
-
 .table td {
   background: #fff;
 }
+
+.input-mini, .input-date-mini {
+  width: 38px;
+  font-size: 0.7rem;
+  padding: 1px 2px;
+  height: 18px;
+  box-sizing: border-box;
+}
+.input-date-mini { width: 78px; }
 
 .order-btn-row {
   display: flex;
@@ -310,6 +315,12 @@ body, html, #app {
   z-index: 2;
 }
 
+.sidebar {
+  min-width: 100px;
+  font-size: 0.1rem;
+  padding: 6px 4px;
+}
+
 .order-btn-big:hover { background: #d2eefd; }
 .cancel-btn-big:hover { background: #fbe5fa; }
 
@@ -337,5 +348,12 @@ body, html, #app {
     font-size: 1.15rem;
     padding: 8px 24px;
   }
+}
+
+button,
+.btn-mini,
+.order-btn-big,
+.cancel-btn-big {
+  border-radius: 999px !important; /* かなり丸い、pill型 */
 }
 </style>

@@ -1,7 +1,12 @@
-﻿namespace Ajimen.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Ajimen.Models
 {
     public class OrderLog
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]  // ★自動採番
         public int OrderLogId { get; set; }           // 主キー
 
         public string StaffId { get; set; }           // 発注者のID（＝ApplicationUser.UserName）
