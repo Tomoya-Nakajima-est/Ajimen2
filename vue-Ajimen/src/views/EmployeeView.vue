@@ -3,14 +3,17 @@
 <div class="employee-view">
   <EmployeeLayout />
   <main class="main-content">
-    <h2>EmployeeView ページ</h2>
-    <p>これは正社員用のサイドメニュー表示テストです。</p>
+    
   </main>
+  <aside class="right-panel">
+    <ShiftStatus />
+  </aside>
   </div>
 </template>
 
 <script setup>
 import EmployeeLayout from '@/components/EmployeeLayout.vue'
+import ShiftStatus from '@/components/ShiftStatus.vue'
 </script>
 
 

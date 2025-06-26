@@ -1,6 +1,6 @@
 
 <template>
-
+<div>
 <!-- ハンバーガーアイコン（スマホサイズで表示） -->
 <button class="hamburger" @click="isMenuOpen = !isMenuOpen">
     ☰
@@ -10,7 +10,7 @@
 <div v-if="isMenuOpen" class="overlay" @click.self="isMenuOpen = false">
     <transition name="slide">
         <div class="side-menu1">
-            <button class="close-button" @click="isMenuOpen = false">✕</button>
+            <button class="close-button" @click="isMenuOpen = false"></button>
             <h1>&lt;AJIQ&gt;</h1>
             <h2>-MENU-</h2>
             <nav>
@@ -42,7 +42,7 @@
 </div>
 
 <div class="side-menu1-wrapper">
-<div class="side-menu1">
+    <div class="side-menu1">
     <h1>&lt;AJIQ&gt;</h1>
     <h2>-MENU-</h2>
     <nav>
@@ -68,6 +68,7 @@ class="menu-button"
 発注・在庫
 </router-link>
 </nav>
+</div>
 </div>
 </div>
 </template>
@@ -224,6 +225,7 @@ nav {
 
 
 /* スマホ対応 */
+
 @media (max-width: 768px) {
     .hamburger {
         display: block;
@@ -236,9 +238,47 @@ nav {
         border: none;
         cursor: pointer;
     }
-    .side-menu1-wrapper {
-        display: none; /* 通常のサイドメニューは非表示にする */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(128, 128, 128, 0.4); /* 薄いグレーの幕 */
+        z-index: 1090;
     }
 
+    .side-menu1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;height: 100vh;
+        background-color: #fefaf6;
+        padding: 30px;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        z-index: 1101;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .overlay .side-menu1 {
+        transform: translateX(0)
+    }
+
+    .slide-enter-active,
+    .slide-leave-active {
+        transition: transform 0.3s ease;
+    }
+
+    .slide-enter-from,
+    .slide-leave-to {
+        transform: translateX(-100%);
+    }
+
+ /* PCではサイドメニュー非表示 */
+.side-menu1-wrapper {
+    display: none;
 }
+}
+
 </style>

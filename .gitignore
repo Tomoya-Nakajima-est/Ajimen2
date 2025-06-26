@@ -24,3 +24,5 @@ dist/
 .vscode/
 .idea/
 
+Ajimen/app.db
+
