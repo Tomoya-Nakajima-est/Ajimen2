@@ -27,6 +27,8 @@ const handleLogin = async () => {
   try {
     const res = await login(id.value, password.value)
     localStorage.setItem('userId', res.userId)
+    localStorage.setItem('userFullName', res.fullName)   // ←追加 0626
+    localStorage.setItem('userRole', res.role) // ←追加 0626
     if (res.role === '正社員' || res.role === '経営者') {
       router.push('/employee')
     } else if (res.role === 'アルバイト') {
