@@ -104,4 +104,45 @@ public class ShiftController : ControllerBase
         var shifts = _context.Shifts.ToList();
         return Ok(shifts);
     }
+
+    [HttpGet("detail")]
+    public IActionResult GetShiftDetail([FromQuery] DateTime day)
+    {
+        var shifts = _context.Shifts
+            .Where(s => s.ShiftDay.Date == day.Date)
+            .ToList();
+
+        var result = shifts.Select(s => new
+        {
+            shiftSelect = s.ShiftSelect,
+            members = s.ShiftMembers,
+            useShiftLog = s.UseShiftLog
+        });
+
+        return Ok(result);
+    }
+    [HttpGet("/api/members")]
+    public IActionResult GetAllMembers()
+    {
+        // 仮の静的データ（本来はDBから）
+        var members = new[]
+        {
+        new { id = "0001", name = "山田さん" },
+        new { id = "0002", name = "田中さん" },
+        new { id = "0003", name = "佐藤さん" },
+        new { id = "0004", name = "鈴木さん" }
+    };
+        return Ok(members);
+    }
+    [HttpGet("editview")]
+    public IActionResult GetShiftMembers([FromQuery] DateTime day, [FromQuery] string shiftSelect)
+    {
+        var shift = _context.Shifts
+            .FirstOrDefault(s => s.ShiftDay.Date == day.Date && s.ShiftSelect == shiftSelect);
+
+        if (shift == null)
+            return Ok(new List<string>()); // 空リストを返す
+
+        return Ok(shift.ShiftMembers);
+    }
 }
