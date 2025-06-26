@@ -1,19 +1,51 @@
-
 <template>
+<div>
+    <!-- ハンバーガーアイコン（スマホサイズで表示） -->
+    <button class="hamburger" @click="isMenuOpen = !isMenuOpen">
+        ☰
+    </button>
+    <!-- メニューのオーバーレイと中身（スマホ用） -->
+    <div v-if="isMenuOpen" class="overlay" @click.self="isMenuOpen = false">
+        <transition name="slide">
+            <div class="side-menu2">
+                <h1>&lt;MENDACO&gt;</h1>
+                <h2>-MENU-</h2>
+                <nav>
+                    <router-link
+                    to="/parttime"
+                    class="menu-button"
+                    :class="{ active: isActive('/parttime') }"
+                    @click="reloadIfSame('/parttime')"
+                    >
+                    HOME
+                </router-link>
+                <router-link
+                to="/parttimeshift"
+                class="menu-button"
+                :class="{ active: isActive('/parttimeshift') }"
+                >
+                シフト表
+            </router-link>
+        </nav>
+    </div>
+</transition>
+</div>
+
+<!-- PC用メニュー -->
 <div class="side-menu2-wrapper">
-<div class="side-menu2">
-    <h1>&lt;MENDACO&gt;</h1>
-    <h2>-MENU-</h2>
-    <nav>
+    <div class="side-menu2">
+        <h1>&lt;MENDACO&gt;</h1>
+        <h2>-MENU-</h2>
+        <nav>
+            <router-link
+            to="/parttime"
+            class="menu-button"
+            :class="{ active: isActive('/parttime') }"
+            @click="reloadIfSame('/parttime')"
+            >
+            HOME
+        </router-link>
         <router-link
-        to="/parttime"
-        class="menu-button"
-        :class="{ active: isActive('/parttime') }"
-        @click="reloadIfSame('/parttime')"
-        >
-        HOME
-    </router-link>
-    <router-link
         to="/parttimeshift"
         class="menu-button"
         :class="{ active: isActive('/parttimeshift') }"
@@ -23,24 +55,46 @@
 </nav>
 </div>
 </div>
+</div>
 </template>
 
-<script setup>
-import { useRoute ,useRouter} from 'vue-router'
 
+
+
+<script setup>
+
+import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted } from 'vue'
+
+
+const handleResize = () => {
+    if (window.innerWidth > 768) {
+        isMenuOpen.value = false
+}
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+})
+
+
+const isMenuOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 
 const reloadIfSame = (path) => {
     if (route.path === path) {
-        router.go(0) // ← ページをリロード
-        }
+        router.go(0)
+    }
 }
 
-const isActive = (path) => {
-    return route.path === path
-}
+const isActive = (path) => route.path === path
 </script>
+
 
 <style scoped>
 .side-menu2-wrapper {
@@ -71,6 +125,8 @@ const isActive = (path) => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    text-align: center;
     gap: 30px;
     position: relative;
     z-index: 1001;
@@ -149,24 +205,66 @@ nav {
     color: #f8e58c;
 }
 
+.hamburger {
+    display: none;
+}
+
+
 /* スマホ対応 */
 @media (max-width: 768px) {
-    .side-menu-wrapper {
-        width: 100%;
-        height: auto;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px 0;
+    .hamburger {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 30px;
+        z-index: 1100;
+        background: none;
+        border: none;
+        cursor: pointer;
     }
-    .side-menu{
-        width: 90;
+    
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(128, 128, 128, 0.4);
+        z-index: 1090;
     }
 
-    .menu-button {
-        font-size: 16px;
-        padding: 12px;
+    .overlay .side-menu2 {
+        transform: translateX(0);
+    }
+
+    .side-menu2 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #fefaf6;
+        padding: 30px;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        z-index: 1101;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .slide-enter-active,
+    .slide-leave-active {
+        transition: transform 0.3s ease;
+    }
+    
+    .slide-enter-from,
+    .slide-leave-to {
+        transform: translateX(-100%);
+    }
+    
+    .side-menu2-wrapper {
+        display: none;
     }
 }
+
 </style>

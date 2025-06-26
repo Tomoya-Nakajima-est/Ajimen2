@@ -11,8 +11,8 @@ namespace Ajimen.Data
                 context.Shifts.Add(new Shift
                 {
                     ShiftId = "000001",
-                    ShiftDay = new DateTime(2025, 6, 28),
-                    ShiftSelect = "A",
+                    ShiftDay = new DateTime(2025, 6, 26),
+                    ShiftSelect = "B",
                     ShiftMembers = new List<string>
                     {
                         "0001", 
