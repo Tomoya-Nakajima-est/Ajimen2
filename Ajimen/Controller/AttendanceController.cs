@@ -126,4 +126,29 @@ public class AttendanceController : ControllerBase
         var attendances = _context.Attendances.ToList();
         return Ok(attendances);
     }
+
+
+
+    [HttpGet("today")]
+    public IActionResult GetTodayAttendance([FromQuery] string staffId)
+    {
+        var today = DateTime.Today;
+        var attendance = _context.Attendances
+        .FirstOrDefault(a => a.StaffId == staffId && a.ShiftDay == today);
+
+        if (attendance == null)
+            return NotFound(new { message = "本日の勤怠情報が見つかりません" });
+
+        return Ok(attendance);
+    }
+
+
+    [HttpGet("debug-all")]
+    public IActionResult DebugAll()
+    {
+        var all = _context.Attendances.ToList();
+        return Ok(all);
+    }
+
+
 }

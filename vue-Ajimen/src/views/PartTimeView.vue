@@ -3,14 +3,17 @@
 <div class="part-page">
   <PartTimeLayout />
   <main class="main-content">
-    <h2>PartTimeLayout テスト表示</h2>
-    <p>このページはサイドメニューの表示確認用です。</p>
+
   </main>
+  <aside class="right-panel">
+    <ShiftStatus />
+  </aside>
   </div>
 </template>
 
 <script setup>
 import PartTimeLayout from '@/components/PartTimeLayout.vue'
+import ShiftStatus from '../components/ShiftStatus.vue';
 </script>
 
 <style scoped>

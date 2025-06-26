@@ -5,15 +5,13 @@
         <p>{{ today }}</p>
         <p v-if="isWorkingDay">シフト{{ shiftType }}：{{ shiftTime }}</p>
     </div>
-    
-    <div class="week-calendar">
-        <span v-for="day in weekDays" :key="day" :class="{ today: day === currentDay }">{{ day }}</span>
-    </div>
+
+    <div v-if="notification" class="popup">{{ notification }}</div>
 
     <div class="current-time">現在時刻：{{ currentTime }}</div>
     <div class="buttons">
-        <button class="clock-in" @click="clockIn">出勤</button>
-        <button class="clock-out" @click="clockOut">退勤</button>
+        <button class="clock-in" :class="{ active: isClockedIn }" @click="clockIn">出勤</button>
+        <button class="clock-out" :class="{ active: isClockedOut }" @click="clockOut">退勤</button>
     </div>
     </div>
 </template>
@@ -34,6 +32,23 @@ const shiftTime = ref('')
 const currentTime = ref('')
 const isClockedIn = ref(false)
 const isClockedOut = ref(false)
+const isWorkingDay = ref(false) 
+
+//ポップアップ通知
+const notification = ref('')
+
+const showNotification = (message) => {
+    notification.value = message
+    setTimeout(() => {
+        notification.value = ''
+    }, 3000)
+}
+
+//シフト情報の切り替え
+const todayISO = new Date().toISOString().split('T')[0]
+
+
+
 
 //現在時刻の更新
 const updateTime = () => {
@@ -46,10 +61,12 @@ const updateTime = () => {
 const clockIn = async () => {
     if (!attendance.value) return
     try {
-        await axios.post('/api/attendance/clockin', {
-            AttendanceId: attendance.value.attendanceId,
-            StaffId: userId
-        })
+        await axios.post('http://localhost:5022/api/attendance/clock-in', userId, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+})
+
         isClockedIn.value = true
         showNotification('出勤打刻が完了しました！')
     } catch (err) {
@@ -63,10 +80,12 @@ const clockIn = async () => {
 const clockOut = async () => {
     if (!attendance.value) return
     try {
-        await axios.post('/api/attendance/clockout', {
-            AttendanceId: attendance.value.attendanceId,
-            StaffId: userId
-        })
+        await axios.post('http://localhost:5022/api/attendance/clock-out', JSON.stringify(userId), {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+})
+
         isClockedOut.value = true
         showNotification('退勤打刻が完了しました！')
     } catch (err) {
@@ -75,55 +94,72 @@ const clockOut = async () => {
 }
 
 
+
 onMounted(async () => {
     updateTime()
     setInterval(updateTime, 1000)
-
+    
+    const todayISO = new Date().toISOString().split('T')[0]
+    
     try {
-    const res = await axios.get(`/api/attendance/${userId}`)
-    attendance.value = res.data
-
-    // 表示用データ整形
-    today.value = new Date(attendance.value.shiftDay).toLocaleDateString('ja-JP', {
-        year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
-    })
-    shiftType.value = attendance.value.shiftSelect
-    shiftTime.value = shiftType.value === 'A' ? '9:00〜13:00' :
-    shiftType.value === 'B' ? '16:00〜20:00' : '未定'
-    isClockedIn.value = attendance.value.useworkLog !== null
-} catch (err) {
-    console.error('打刻情報の取得に失敗しました', err)
-}
+        // 勤怠情報の取得
+        const res = await axios.get(`http://localhost:5022/api/attendance/today?staffId=${userId}`)
+        attendance.value = res.data
+        // 日付表示
+        today.value = new Date(attendance.value.shiftDay).toLocaleDateString('ja-JP', {
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
+        })
+        // 出勤状態
+        isClockedIn.value = attendance.value.isWorking
+        
+        // シフト情報の取得
+        const shiftRes = await axios.get(`http://localhost:5022/api/shift/check?day=${todayISO}&memberId=${userId}`)
+        if (shiftRes.data.length > 0) {
+            isWorkingDay.value = true
+            shiftType.value = shiftRes.data[0].shiftSelect
+            shiftTime.value = shiftType.value === 'A' ? '9:00〜13:00' :
+            shiftType.value === 'B' ? '16:00〜20:00' : '未定'
+        } else {
+            isWorkingDay.value = false
+        }
+    } catch (err) {
+        if (err.response?.status === 404) {
+            showNotification('本日の勤怠情報はまだ登録されていません')
+        } else {
+            showNotification('勤怠情報の取得に失敗しました')
+        }
+    }
 })
+
 </script>
 
 <style scoped>
 
 .shift-status {
     width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 50px;
-    background-color: #fff;
+    max-width: 1100px;
+    margin: 50px auto 140px auto; 
+    padding: 66px 190px;
+    background-color: #fefaf6;
     border-radius: 16px;
     text-align: center;
     font-family: 'Georgia', serif;
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    height: 85vh;
+    gap: 40px;
+    height: auto;
     justify-content: center;
 }
 
 .status-header {
-    font-size: 32px;
+    font-size: 40px;
     color: #460125;
 }
 
 .shift-info-box {
-    padding: 24px;
-    border-radius: 10px;
-    font-size: 22px;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 20px;
 }
 
 .shift-info-box.working {
@@ -136,7 +172,7 @@ onMounted(async () => {
 }
 
 .current-time {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .buttons {
@@ -147,9 +183,10 @@ onMounted(async () => {
 
 button {
     padding: 18px 36px;
-    font-size: 20px;
+    font-size: 22px;
+    min-width: 160px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
@@ -172,34 +209,54 @@ button {
     color: white;
 }
 
+
+.popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #028760;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+}
+
+
+
+
+
 /* スマホ対応 */
 @media (max-width: 768px) {
     .shift-status {
-        padding: 30px;
+        padding: 40px 20px; /* 横の余白を小さく */
         height: auto;
     }
     
     .status-header {
-        font-size: 24px;
+        font-size: 22px;
     }
     
     .shift-info-box {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .current-time {
-        font-size: 20px;
+        font-size: 18px;
     }
     
     .buttons {
         flex-direction: column;
-        gap: 20px;
+        gap: 16px;
     }
     button {
         width: 100%;
-        font-size: 18px;
+        font-size: 16px;
     }
 }
+
+
 
 
 </style>

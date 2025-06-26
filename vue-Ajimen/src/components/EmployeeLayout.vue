@@ -10,7 +10,7 @@
 <div v-if="isMenuOpen" class="overlay" @click.self="isMenuOpen = false">
     <transition name="slide">
         <div class="side-menu1">
-            <button class="close-button" @click="isMenuOpen = false"></button>
+            <!--<button class="close-button" @click="isMenuOpen = false"></button>-->
             <h1>&lt;AJIQ&gt;</h1>
             <h2>-MENU-</h2>
             <nav>
