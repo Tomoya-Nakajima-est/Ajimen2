@@ -15,4 +15,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    host: true,        // ← これを追加！
+    port: 5173,         // 任意。Localtunnel と合わせるなら明示してOK
+    allowedHosts: ['.trycloudflare.com']  //ここが末尾URL
+  }
 })

@@ -32,12 +32,21 @@ public class Program
         builder.Services.AddSwaggerGen();              // Swagger UIの自動生成
 
         // 🔓 CORSポリシーの定義：Vue.js（http://localhost:5173）からのアクセスを許可、vueのURLのポート番号
-        builder.Services.AddCors(options =>
+        //builder.Services.AddCors(options =>  ローカル用
+        //{
+        //    options.AddPolicy("AllowVueApp",
+        //        policy => policy.WithOrigins("http://localhost:5173")
+        //                        .AllowAnyHeader()
+        //                        .AllowAnyMethod());
+        //});
+
+        builder.Services.AddCors(options =>   //公開用
         {
             options.AddPolicy("AllowVueApp",
-                policy => policy.WithOrigins("http://localhost:5173")
-                                .AllowAnyHeader()
-                                .AllowAnyMethod());
+                policy => policy
+                    .AllowAnyOrigin()      // 本番では使わないこと！
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
         });
 
         var app = builder.Build();
