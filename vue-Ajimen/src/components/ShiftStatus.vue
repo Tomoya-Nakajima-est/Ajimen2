@@ -23,7 +23,7 @@ import axios from 'axios'
 
 //ログインユーザーIDを取得
 const userId = localStorage.getItem('userId')
-
+console.log(userId);
 //データ保存
 const attendance = ref(null)
 const today = ref('')
@@ -33,6 +33,7 @@ const currentTime = ref('')
 const isClockedIn = ref(false)
 const isClockedOut = ref(false)
 const isWorkingDay = ref(false) 
+
 
 //ポップアップ通知
 const notification = ref('')
@@ -61,7 +62,7 @@ const updateTime = () => {
 const clockIn = async () => {
     if (!attendance.value) return
     try {
-        await axios.post('http://localhost:5022/api/attendance/clock-in', userId, {
+        await axios.post('http://localhost:5022/api/attendance/clock-in',{ staffId: userId },   {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -80,7 +81,7 @@ const clockIn = async () => {
 const clockOut = async () => {
     if (!attendance.value) return
     try {
-        await axios.post('http://localhost:5022/api/attendance/clock-out', JSON.stringify(userId), {
+        await axios.post('http://localhost:5022/api/attendance/clock-out', { staffId: userId },   {
             headers: {
                 'Content-Type': 'application/json'
             }
