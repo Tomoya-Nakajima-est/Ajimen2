@@ -58,10 +58,11 @@ public class Program
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
             SeedItem.Initialize(db);
-            SeedOrdeLog.Initialize(db);
-            SeedStockLog.Initialize(db);
+            SeedOrderLog.Initialize(db);
             SeedShift.Initialize(db);
             SeedAttendance.Initialize(db);
+            // 👇これを追加！！
+            SeedStockLog.Initialize(db);
 
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             await SeedIdentityUsers.InitializeAsync(userManager); // 非同期で初期ユーザー登録

@@ -20,7 +20,9 @@ namespace Ajimen.Controllers
         [HttpGet("logs")]
         public IActionResult GetStockLogs()
         {
-            return Ok(_context.StockLogs.ToList());
-        }       
+            var logs = _context.StockLogs.ToList();
+            Console.WriteLine($"ログ件数: {logs.Count}"); // ここを追記
+            return Ok(logs);
+        }
     }
 }
