@@ -17,8 +17,9 @@
           v-for="day in week"
           :key="day.date"
           :class="{
-            'has-shift': day.date && isInCurrentMonth(day.date) && shiftDays.includes(toDateString(day.date)),
-            'selected-date': mode === 'select' && day.date && toDateString(day.date) === toDateString(selectedDate)
+            'has-shift': day.date && isInCurrentMonth(day.date) && shiftDays.some(s => s.date === toDateString(day.date)),
+            'selected-date': mode === 'select' && day.date && toDateString(day.date) === toDateString(selectedDate),
+            'confirmed-day': day.date && isConfirmedDay(day.date)
           }"
   @click="selectDate(day.date)"
 >
@@ -131,9 +132,18 @@ const loadShifts = async () => {
     }
   });
   console.log("サーバーからのデータ:", res.data);
-  shiftDays.value = res.data.map(item => item.date);
+  shiftDays.value = res.data.map(item => ({
+    date: item.date,
+    isConfirmed: item.isConfirmed
+  }));
   console.log("shiftDays に格納された内容:", shiftDays.value);
 };
+
+const isConfirmedDay = (date) => {
+  const d = toDateString(date)
+  const target = shiftDays.value.find(s => s.date === d)
+  return target ? target.isConfirmed : false
+}
 
 const prevMonth = () => {
   if (currentMonth.value === 0) {
@@ -315,5 +325,8 @@ th, td {
 .buttons {
   text-align: center;
   margin-top: 1rem;
+}
+.calendar td.confirmed-day {
+  background-color: #c922b8;
 }
 </style>
