@@ -23,7 +23,7 @@ namespace Ajimen.Data
                 var user2 = new ApplicationUser
                 {
                     UserName = "0002",
-                    Email = "bbb@aiueo.com",
+                    Email = "t-nakajima@est.co.jp",
                     UserFullName = "中島朋弥",
                     UserRole = "正社員"
                 };
