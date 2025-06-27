@@ -16,19 +16,28 @@ public class AttendanceController : ControllerBase
         _context = context;
     }
 
+    public class StaffDto
+    {
+        public string staffId { get; set; }
+    }
+
     // 出勤打刻
     [HttpPost("clock-in")]
-    public IActionResult ClockIn([FromBody] string staffId)
+    //public IActionResult ClockIn([FromBody] string staffId)
+
+    public IActionResult ClockIn([FromBody] StaffDto dto)
+
     {
+        Console.WriteLine($"受け取ったstaffId: {dto.staffId}");
         var now = DateTime.Now;
         var today = now.Date;
         var startTime = now.TimeOfDay; // ← TimeSpan で取得
 
-        var alreadyClockedIn = _context.Attendances
-            .Any(a => a.StaffId == staffId && a.ShiftDay == today);
+        //var alreadyClockedIn = _context.Attendances
+        //    .Any(a => a.StaffId == dto.staffId && a.ShiftDay == today);
 
-        if (alreadyClockedIn)
-            return BadRequest("すでに本日の出勤打刻があります");
+        //if (alreadyClockedIn)
+        //    return BadRequest("すでに本日の出勤打刻があります");
 
         // AttendanceId 自動採番
         var lastId = _context.Attendances
@@ -45,7 +54,7 @@ public class AttendanceController : ControllerBase
         var attendance = new Attendance
         {
             AttendanceId = newAttendanceId,
-            StaffId = staffId,
+            StaffId = dto.staffId,
             ShiftDay = today,
             StartTime = startTime, // ← TimeSpan型に変更
             IsWorking = true
@@ -59,14 +68,24 @@ public class AttendanceController : ControllerBase
 
     // 退勤打刻
     [HttpPost("clock-out")]
-    public IActionResult ClockOut([FromBody] string staffId)
+    public IActionResult ClockOut([FromBody] StaffDto dto)
     {
+        var staffId = dto.staffId;
         var now = DateTime.Now;
         var today = now.Date;
         var endTime = now.TimeOfDay; // ← TimeSpanで取得
 
+        //var attendance = _context.Attendances
+        //    .FirstOrDefault(a => a.StaffId == dto.staffId && a.ShiftDay == today);
+
+
         var attendance = _context.Attendances
-            .FirstOrDefault(a => a.StaffId == staffId && a.ShiftDay == today);
+         .Where(a => a.StaffId == staffId && a.ShiftDay == today && a.IsWorking)
+         .ToList()
+         .OrderByDescending(a => a.StartTime)
+         .FirstOrDefault();
+
+
 
         if (attendance == null)
             return NotFound("本日の出勤データが見つかりません");
