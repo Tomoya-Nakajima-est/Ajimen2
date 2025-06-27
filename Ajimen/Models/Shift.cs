@@ -9,5 +9,6 @@ public class Shift
     public DateTime ShiftDay { get; set; }       // 例: 2024/07/15
     public string ShiftSelect { get; set; }      // "A" or "B"
     public List<string> ShiftMembers { get; set; } = new();
+    public bool IsConfirmed { get; set; } = false; 
     public string UseShiftLog { get; set; }      // 正社員が編集した場合用
 }
