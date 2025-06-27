@@ -227,6 +227,8 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  position: relative;
+  z-index: 2;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
 }
 
