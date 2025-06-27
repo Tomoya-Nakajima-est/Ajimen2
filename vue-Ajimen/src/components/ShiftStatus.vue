@@ -5,8 +5,14 @@
         <p>{{ today }}</p>
         <p v-if="isWorkingDay">シフト{{ shiftType }}：{{ shiftTime }}</p>
     </div>
+    <div class="text-center mt-4">
+        <button class="btn-history" @click="goToHistory">
+            シフト履歴を見る
+        </button>
 
-    <div v-if="notification" class="popup">{{ notification }}</div>
+    </div>
+
+    
 
     <div class="current-time">現在時刻：{{ currentTime }}</div>
     <div class="buttons">
@@ -14,12 +20,19 @@
         <button class="clock-out" :class="{ active: isClockedOut }" @click="clockOut">退勤</button>
     </div>
     </div>
+    <NotificationModal
+    :visible="notificationVisible"
+    :message="notification"
+    @close="notificationVisible = false"
+/>
+
 </template>
 
 
 <script setup>
 import{ ref, onMounted } from 'vue'
 import axios from 'axios'
+import NotificationModal from '@/components/NotificationModal.vue'
 
 //ログインユーザーIDを取得
 const userId = localStorage.getItem('userId')
@@ -36,17 +49,25 @@ const isWorkingDay = ref(false)
 
 
 //ポップアップ通知
-const notification = ref('')
 
-const showNotification = (message) => {
-    notification.value = message
-    setTimeout(() => {
-        notification.value = ''
-    }, 3000)
+
+const notification = ref('')
+const notificationVisible = ref(false)
+
+const showNotification = (msg) => {
+    notification.value = msg
+    notificationVisible.value = true
 }
+
 
 //シフト情報の切り替え
 const todayISO = new Date().toISOString().split('T')[0]
+
+//履歴画面切り替え
+const goToHistory = () => {
+    window.location.href = '/ShiftHistory'; // 必要に応じてルーティング調整
+}
+
 
 //状態管理
 const isProcessing = ref(false)
@@ -63,6 +84,7 @@ const updateTime = () => {
 //出勤処理
 
 const clockIn = async () => {
+    await refreshAttendance()
     if (isProcessing.value || isClockedIn.value){
         showNotification('すでに出勤済み もしくは 処理中です')
         return
@@ -77,6 +99,7 @@ const clockIn = async () => {
 })
 
         isClockedIn.value = true
+        await refreshAttendance()//状態更新
         showNotification('出勤打刻が完了しました！')
     } catch (err) {
         showNotification('出勤打刻に失敗しました')
@@ -91,6 +114,7 @@ const clockIn = async () => {
 //退勤処理
 
 const clockOut = async () => {
+    
     if (isProcessing.value || isClockedOut.value) {
         showNotification('すでに退勤済み もしくは 処理中です')
         return
@@ -103,11 +127,12 @@ const clockOut = async () => {
 })
 
         isClockedOut.value = true
+        await refreshAttendance()//状態更新
         showNotification('退勤打刻が完了しました！')
     } catch (err) {
         showNotification('退勤打刻に失敗しました')
     }finally{
-        isProcessing.value
+        isProcessing.value = false
     }
 }
 
@@ -117,12 +142,23 @@ const refreshAttendance = async () => {
         const res = await axios.get(`http://localhost:5022/api/attendance/list?staffId=${userId}&year=${new Date().getFullYear()}&month=${new Date().getMonth() + 1}`)
         attendanceList.value = res.data.filter(a => a.shiftDay === todayISO)
 
+        // const latest = attendanceList.value
+        // .filter(a => a.isWorking)
+        // .sort((a, b) => b.startTime.localeCompare(a.startTime))[0]
         const latest = attendanceList.value
-        .filter(a => a.isWorking)
         .sort((a, b) => b.startTime.localeCompare(a.startTime))[0]
 
-        isClockedIn.value = !!latest
-        isClockedOut.value = !latest
+
+        // isClockedIn.value = !!latest
+        // isClockedOut.value = !latest
+        if(latest){
+            isClockedIn.value = latest.isWorking
+            isClockedOut.value = !latest.isWorking && latest.endTime !== null
+        }
+        // isClockedIn.value = attendanceList.value.some(a => a.isWorking)
+        // isClockedOut.value = attendanceList.value.every(a => !a.isWorking)
+        isClockedIn.value = false
+        isClockedOut.value = false
     } catch (err) {
         showNotification('勤怠情報の取得に失敗しました')
     }
@@ -133,38 +169,32 @@ const refreshAttendance = async () => {
 onMounted(async () => {
     updateTime()
     setInterval(updateTime, 1000)
-    
-    const todayISO = new Date().toISOString().split('T')[0]
-    
+
+    loadSummary()//一括取得
+})
+
+
+
+const loadSummary = async () => {
     try {
-        // 勤怠情報の取得
-        const res = await axios.get(`http://localhost:5022/api/attendance/today?staffId=${userId}`)
-        attendance.value = res.data
-        // 日付表示
-        today.value = new Date(attendance.value.shiftDay).toLocaleDateString('ja-JP', {
+        const res = await axios.get(`http://localhost:5022/api/attendance/summary?staffId=${userId}`)
+        const data = res.data
+
+        isWorkingDay.value = data.isWorkingDay
+        shiftType.value = data.shiftType
+        shiftTime.value = data.shiftTime
+        isClockedIn.value = data.isClockedIn
+        isClockedOut.value = data.isClockedOut
+
+        today.value = new Date(data.date).toLocaleDateString('ja-JP', {
             year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
         })
-        // 出勤状態
-        isClockedIn.value = attendance.value.isWorking
-        
-        // シフト情報の取得
-        const shiftRes = await axios.get(`http://localhost:5022/api/shift/check?day=${todayISO}&memberId=${userId}`)
-        if (shiftRes.data.length > 0) {
-            isWorkingDay.value = true
-            shiftType.value = shiftRes.data[0].shiftSelect
-            shiftTime.value = shiftType.value === 'A' ? '9:00〜13:00' :
-            shiftType.value === 'B' ? '16:00〜20:00' : '未定'
-        } else {
-            isWorkingDay.value = false
-        }
     } catch (err) {
-        if (err.response?.status === 404) {
-            showNotification('本日の勤怠情報はまだ登録されていません')
-        } else {
-            showNotification('勤怠情報の取得に失敗しました')
-        }
+        console.error('summary API エラー:', err)
+        showNotification('現在情報の取得に失敗しました')
     }
-})
+}
+
 
 </script>
 
@@ -173,8 +203,8 @@ onMounted(async () => {
 .shift-status {
     width: 100%;
     max-width: 1100px;
-    margin: 50px auto 140px auto; 
-    padding: 66px 190px;
+    margin: 44px auto 140px auto; 
+    padding: 27px 190px;
     background-color: #fefaf6;
     border-radius: 16px;
     text-align: center;
@@ -245,21 +275,23 @@ button {
 }
 
 
-.popup {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #028760;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 16px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 1000;
+.btn-history {
+    background-color: #586068; /* ネイビーグレー系 */
+    color: #fff;
+    padding: 16px 32px;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: 'Georgia', serif;
+    margin-top: -10px;
 }
 
-
-
+.btn-history:hover {
+    background-color: #262b30;
+    color: #f8e58c;
+}
 
 
 /* スマホ対応 */
