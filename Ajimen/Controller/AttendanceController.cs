@@ -170,4 +170,31 @@ public class AttendanceController : ControllerBase
     }
 
 
+    [HttpGet("summary")]
+    public IActionResult GetDailySummary([FromQuery] string staffId)
+    {
+        var today = DateTime.Today;
+
+        var attendance = _context.Attendances
+        .FirstOrDefault(a => a.StaffId == staffId && a.ShiftDay == today);
+
+        var shift = _context.Shifts
+        .FirstOrDefault(s => s.ShiftDay == today && s.ShiftMembers.Contains(staffId));
+
+        var shiftType = shift?.ShiftSelect;
+        var shiftTime = shiftType == "A" ? "9:00〜13:00" :
+        shiftType == "B" ? "16:00〜20:00" : "未定";
+
+        return Ok(new
+        {
+            date = today.ToString("yyyy-MM-dd"),
+            isWorkingDay = shift != null,
+            shiftType,
+            shiftTime,
+            isClockedIn = attendance?.IsWorking ?? false,
+            isClockedOut = attendance != null && !attendance.IsWorking
+        });
+    }
+
+
 }
