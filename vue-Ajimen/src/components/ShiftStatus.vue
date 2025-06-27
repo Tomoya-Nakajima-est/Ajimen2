@@ -25,7 +25,7 @@ import axios from 'axios'
 const userId = localStorage.getItem('userId')
 console.log(userId);
 //データ保存
-const attendance = ref(null)
+const attendanceList = ref([])
 const today = ref('')
 const shiftType = ref('')
 const shiftTime = ref('')
@@ -48,6 +48,9 @@ const showNotification = (message) => {
 //シフト情報の切り替え
 const todayISO = new Date().toISOString().split('T')[0]
 
+//状態管理
+const isProcessing = ref(false)
+
 
 
 
@@ -60,9 +63,14 @@ const updateTime = () => {
 //出勤処理
 
 const clockIn = async () => {
-    if (!attendance.value) return
+    if (isProcessing.value || isClockedIn.value){
+        showNotification('すでに出勤済み もしくは 処理中です')
+        return
+    }
+
+    isProcessing.value = true
     try {
-        await axios.post('http://localhost:5022/api/attendance/clock-in',{ staffId: userId },   {
+        await axios.post('http://localhost:5022/api/Attendance/clock-in',{ staffId: userId },   {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -72,16 +80,23 @@ const clockIn = async () => {
         showNotification('出勤打刻が完了しました！')
     } catch (err) {
         showNotification('出勤打刻に失敗しました')
+    }finally{
+        isProcessing.value = false
     }
+
+    
 }
 
 
 //退勤処理
 
 const clockOut = async () => {
-    if (!attendance.value) return
+    if (isProcessing.value || isClockedOut.value) {
+        showNotification('すでに退勤済み もしくは 処理中です')
+        return
+    }
     try {
-        await axios.post('http://localhost:5022/api/attendance/clock-out', { staffId: userId },   {
+        await axios.post('http://localhost:5022/api/Attendance/clock-out', { staffId: userId },   {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -91,6 +106,25 @@ const clockOut = async () => {
         showNotification('退勤打刻が完了しました！')
     } catch (err) {
         showNotification('退勤打刻に失敗しました')
+    }finally{
+        isProcessing.value
+    }
+}
+
+
+const refreshAttendance = async () => {
+    try {
+        const res = await axios.get(`http://localhost:5022/api/attendance/list?staffId=${userId}&year=${new Date().getFullYear()}&month=${new Date().getMonth() + 1}`)
+        attendanceList.value = res.data.filter(a => a.shiftDay === todayISO)
+
+        const latest = attendanceList.value
+        .filter(a => a.isWorking)
+        .sort((a, b) => b.startTime.localeCompare(a.startTime))[0]
+
+        isClockedIn.value = !!latest
+        isClockedOut.value = !latest
+    } catch (err) {
+        showNotification('勤怠情報の取得に失敗しました')
     }
 }
 
