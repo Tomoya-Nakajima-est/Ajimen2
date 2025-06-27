@@ -196,7 +196,7 @@ nav {
     width: 100%;
     margin-bottom: 10px;
     padding: 30px;
-    font-size: 20px;
+    font-size: 18px;
     background-color: #f1ebe5;
     text-align: center;
     text-decoration: none;
