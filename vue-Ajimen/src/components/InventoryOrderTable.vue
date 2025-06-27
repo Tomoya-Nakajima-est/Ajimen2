@@ -14,13 +14,13 @@
             <tr>
               <th>在庫ログID</th>
               <th>登録者ID</th>
-              <th>登録者名</th>
-              <th>記録日</th>
+              <th>登録者</th>
+              <th>登録日時</th>
               <th>在庫数</th>
-              <th>最低在庫数</th>
+              <th>最低数</th>
               <th>物品ID</th>
               <th>物品名</th>
-              <th>カテゴリ</th>
+              <th>種別</th>
               <th>　</th>
             </tr>
           </thead>
@@ -60,10 +60,10 @@
             <tr>
               <th>発注ログID</th>
               <th>登録者ID</th>
-              <th>登録者名</th>
+              <th>登録者</th>
               <th>物品ID</th>
               <th>物品名</th>
-              <th>カテゴリ</th>
+              <th>種別</th>
               <th>発注数</th>
               <th>削除</th>
             </tr>
@@ -202,6 +202,7 @@ body, html, #app {
   box-sizing: border-box;
   overflow-y: auto;
   height: 100vh; /* または100% */
+  z-index: 2;
 }
 
 .home-root {
@@ -209,6 +210,7 @@ body, html, #app {
   min-height: 100vh;
   background: #460125;
   width: 100vw;
+  z-index: 2;
 }
 .main-area {
   display:flex;
@@ -218,6 +220,7 @@ body, html, #app {
   margin: 0;
   overflow-y: auto;
   height: 100vh; /* または100% */
+  z-index: 2;
 }
 
 .main-title, .section-title {
@@ -233,23 +236,28 @@ body, html, #app {
   width: 100%;
   max-width: 100vw;
   min-width: 0;
-  margin: 0 auto 10px auto;      /* 下余白を減らす */
-  padding: 4px 0;                /* パディングを小さく */
+  margin: 0 auto 10px auto;
+  padding: 4px 0;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px #bb99aa33;
   min-height: 50px;
   overflow-x: auto;
+  position: relative;   /* ←追加！ */
+  z-index: 2;
 }
 
 .table {
   width: 100%;
-  min-width: 360px;              /* これより小さい画面は横スクロール */
+  min-width: 360px;
   max-width: 100%;
-  font-size: 0.88rem;            /* やや小さめ */
+  font-size: 0.75rem;
   border-radius: 8px;
   border-collapse: collapse;
+  position: relative;   /* ←追加！ */
+  z-index: 2;
 }
+
 
 .table thead tr {
   background: #3a2e4e;
@@ -262,17 +270,14 @@ body, html, #app {
 }
 
 .table th, .table td {
-  padding: 3px 4px;   /* ←ここの数字を大きくすると余白が広くなる */
-  border: 1px solid #b8a8ad;
+  padding: 0px 0px;   /* ←ここの数字を大きくすると余白が広くなる */
   text-align: center;
-  /* 追加例: */
-  /* vertical-align: middle; */
+  border-left: 1px solid #b8a8ad;
 }
-
-.table td {
-  background: #fff;
+/* 一番左のセル（1列目）は線を消す（ダブらないように） */
+.table th:first-child, .table td:first-child {
+  border-left: none;
 }
-
 .input-mini, .input-date-mini {
   width: 38px;
   font-size: 0.7rem;
@@ -284,18 +289,19 @@ body, html, #app {
 
 .order-btn-row {
   display: flex;
+  flex-direction: row; /* 横並び */
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  margin-top: 32px;
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .order-btn-big {
   background: #eaf8ff;
   color: #486578;
-  font-size: 2rem;
-  padding: 14px 62px;
+  font-size: 1rem;
+  padding: 6px 26px;
   border: 1.5px solid #b7d1e5;
   border-radius: 12px;
   cursor: pointer;
@@ -306,8 +312,8 @@ body, html, #app {
 .cancel-btn-big {
   background: #edd8ed;
   color: #94618e;
-  font-size: 2rem;
-  padding: 14px 62px;
+  font-size: 1rem;
+  padding: 6px 26px;
   border: 1.5px solid #cbb4ce;
   border-radius: 12px;
   cursor: pointer;
