@@ -248,8 +248,9 @@ public class ShiftController : ControllerBase
         var message = new MailMessage(from, to, subject, body);
         await smtp.SendMailAsync(message);
     }
+
     [HttpPost("confirm-by-id")]
-    public IActionResult ConfirmByIds([FromBody] List<string> shiftIds)
+    public async Task<IActionResult> ConfirmByIds([FromBody] List<string> shiftIds)
     {
         if (shiftIds == null || shiftIds.Count == 0)
             return BadRequest("ShiftIdリストが空です");
@@ -265,9 +266,52 @@ public class ShiftController : ControllerBase
         {
             shift.IsConfirmed = true;
         }
-
         _context.SaveChanges();
 
-        return Ok(new { message = "対象のシフトを確定しました", count = targetShifts.Count });
+        // ✅ メール送信処理
+        try
+        {
+            // 対象ユーザーIDを取得（重複排除）
+            var userIds = targetShifts.SelectMany(s => s.ShiftMembers).Distinct().ToList();
+
+            var users = _userManager.Users
+                .Where(u => userIds.Contains(u.UserName))
+                .ToList();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("以下のシフトが確定されました：\n");
+
+            foreach (var shift in targetShifts)
+            {
+                sb.AppendLine($"日付: {shift.ShiftDay:yyyy-MM-dd}, シフト: {shift.ShiftSelect}");
+            }
+
+            foreach (var user in users)
+            {
+                if (string.IsNullOrEmpty(user.Email)) continue;
+
+                var message = new MailMessage("tomoya.marionette.august@gmail.com", user.Email)
+                {
+                    Subject = "【自動送信】シフト確定のお知らせ",
+                    Body = sb.ToString(),
+                    IsBodyHtml = false
+                };
+
+                var smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("tomoya.marionette.august@gmail.com", "deam soei cgrr qjvb"),
+                    EnableSsl = true,
+                };
+
+                smtp.Send(message);
+            }
+        }
+        catch (Exception ex)
+        {
+            return BadRequest("シフトは確定されましたが、メール送信に失敗しました: " + ex.Message);
+        }
+
+        return Ok(new { message = "対象のシフトを確定し、メールを送信しました", count = targetShifts.Count });
     }
 }
