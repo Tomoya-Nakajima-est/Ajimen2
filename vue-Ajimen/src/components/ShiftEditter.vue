@@ -464,12 +464,15 @@ watch([currentYear, currentMonth], async () => {
   border-radius: 8px;
   width: fit-content;
   min-width: 600px;
-  min-height: 500px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  overflow-x: auto;
 }
 .calendar-nav {
   display: flex;
